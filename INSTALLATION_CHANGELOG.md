@@ -873,6 +873,67 @@ cp ~/.claude/history.jsonl ~/PAI-installation-conversation-backup.jsonl
 
 ---
 
+## 🐛 Critical Bug Fix (November 10, 2025 - 02:20)
+
+**Issue:** SessionStart hooks failing with errors on Claude Code launch.
+
+**Root Cause:** `PAI_DIR` was missing from `~/.claude/settings.json` env section.
+
+```
+Hook errors shown:
+⎿ SessionStart:startup hook error (repeated 3x)
+
+Cause:
+- settings.json had: "env": { "DA": "Kai" }
+- But was missing: "PAI_DIR": "$HOME/.claude"
+- Hooks couldn't find files at $PAI_DIR path
+```
+
+**Actions Taken:**
+1. **Added PAI_DIR to settings.json:**
+   ```json
+   "env": {
+     "DISABLE_INTERLEAVED_THINKING": "true",
+     "DA": "Kai",
+     "PAI_DIR": "$HOME/.claude"  ← Added this
+   }
+   ```
+
+2. **Created error logging system:**
+   - Directory: `~/.claude/logs/`
+   - Logs: `~/.claude/logs/hook-errors-YYYY-MM-DD.log`
+   - Script: `~/.claude/hooks/hook-error-logger.sh`
+
+3. **Created test script:**
+   - File: `~/.claude/test-hooks.sh`
+   - Tests all hooks before Claude Code launch
+   - Verifies configuration is correct
+
+4. **Set up dashboard event logging:**
+   - Created: `~/.claude/history/raw-outputs/2025-11/`
+   - Initial event files for dashboard compatibility
+   - Prevents dashboard crashes on first run
+
+**Result:**
+- ✅ All hooks now execute successfully
+- ✅ Core context loads: "I'm Kai"
+- ✅ Terminal title updates: "Kai Ready"
+- ✅ Event logging works for dashboard
+- ✅ Error logs capture any future issues
+
+**Testing:**
+```bash
+# Run test script to verify:
+bash ~/.claude/test-hooks.sh
+
+# View any hook errors:
+cat ~/.claude/logs/hook-errors-$(date +%Y-%m-%d).log
+```
+
+**Lesson Learned:** When modifying installation approach (selective copy vs full copy), must ensure ALL settings from template are preserved, including environment variables in settings.json.
+
+---
+
 **End of Changelog - Installation Complete!**
 
 *This installation provides a comprehensive AI infrastructure for both development work and general life assistance, using natural language interaction and smart context management. The pure PAI approach was chosen over a hybrid system to avoid conflicts and provide a cohesive experience.*
